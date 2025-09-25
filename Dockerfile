@@ -16,7 +16,7 @@ WORKDIR /app
 COPY . .
 
 # Compilar el código con g++ y OpenMP (Si tienes varios archivos .cpp)
-RUN g++ -O2 -fopenmp main.cpp Node.cpp Network.cpp -o main
+RUN g++ main.cpp Network.cpp Node.cpp WavePropagator.cpp -o main -fopenmp
 
 # Comando para ejecutar al iniciar el contenedor
 CMD ["./main"]

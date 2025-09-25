@@ -40,39 +40,3 @@ void Network::initializeRegularNetwork(int dimensions) {
     }
 }
 
-void Network::propagateWaves() {
-    std::vector<double> newAmplitudes(nodes.size(), 0.0);
-
-    for (int i = 0; i < nodes.size(); ++i) {
-        double sum_neighbors = 0.0;
-        double Ai = nodes[i].getAmplitude();
-
-        for (int neighborId : nodes[i].getNeighbors()) {
-            sum_neighbors += nodes[neighborId].getAmplitude() - Ai;
-        }
-
-        double diffusion = diffusionCoeff * sum_neighbors;
-        double damping = -dampingCoeff * Ai;
-        double source = 0.0;  // Sin fuente externa
-        double delta = diffusion + damping + source;
-
-        newAmplitudes[i] = Ai + delta * timestep;
-    }
-
-    for (int i = 0; i < nodes.size(); ++i) {
-        nodes[i].updateAmplitude(newAmplitudes[i]);
-    }
-}
-
-// Las otras versiones paralelas quedan a implementar en siguientes pasos
-void Network::propagateWaves(int scheduleType) {
-    // Por implementar
-}
-
-void Network::propagateWaves(int scheduleType, int chunkSize) {
-    // Por implementar
-}
-
-void Network::propagateWavesCollapse() {
-    // Por implementar
-}

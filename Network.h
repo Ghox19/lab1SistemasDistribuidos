@@ -18,10 +18,10 @@ public:
     void initializeRandomNetwork();
     void initializeRegularNetwork(int dimensions);
 
-    void propagateWaves();                     // método base (secuencial)
-    void propagateWaves(int scheduleType);    // versión paralela (por implementar)
-    void propagateWaves(int scheduleType, int chunkSize);
-    void propagateWavesCollapse();
+    // Getters para los parámetros físicos y de simulación
+    double getDiffusionCoeff() const { return diffusionCoeff; }
+    double getDampingCoeff() const { return dampingCoeff; }
+    double getTimestep() const { return timestep; }
 
     std::vector<Node>& getNodes() { return nodes; }
     const std::vector<Node>& getNodes() const { return nodes; }
