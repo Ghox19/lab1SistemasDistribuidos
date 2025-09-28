@@ -1,0 +1,12 @@
+{
+  "name": "Entorno Docker Ubuntu OpenMP",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash"
+  },
+  "extensions": [
+    "ms-vscode.cpptools"
+  ]
+}
