@@ -1,59 +1,64 @@
 #include <iostream>
+#include <fstream>
+#include <cmath>
 #include "Network.h"
-#include "Node.h"
 #include "WavePropagator.h"
 
 int main() {
-    double D = 0.1;
-    double gamma = 0.01;
-    double dt = 0.01;
+    const int networkWidth = 100;
+    const int networkHeight = 100;
+    const int networkSize = networkWidth * networkHeight;
+    const int totalSteps = 1000;
+    const double dt = 0.01;
+    const double D = 0.1;
+    const double gamma = 0.01;
+    const double amplitude0 = 1.0;
+    const double sourceMagnitude = 0.1;
+    const double omega = 2.0 * 3.14159265359;
 
-    // Crear red de 3 nodos: 0, 1, 2
-    Network network(3, D, gamma, dt);
+    Network network(networkSize, D, gamma, dt);
 
-    // Limpiar vecinos y conectar: nodo 1 con 0 y 2
-    network.getNodes()[0].clearNeighbors();
-    network.getNodes()[1].clearNeighbors();
-    network.getNodes()[2].clearNeighbors();
-
-    network.getNodes()[1].addNeighbor(0);
-    network.getNodes()[1].addNeighbor(2);
-
-    // Asignar amplitudes: nodo 1=1.0, vecino 0=0.8, vecino 2=1.2
-    network.getNodes()[0].updateAmplitude(0.8);
-    network.getNodes()[1].updateAmplitude(1.0);
-    network.getNodes()[2].updateAmplitude(1.2);
-
-    // Mostrar amplitudes iniciales
-    std::cout << "Amplitudes iniciales:" << std::endl;
-    for (int i = 0; i < 3; ++i) {
-        std::cout << "Nodo " << i << ": " << network.getNodes()[i].getAmplitude() << std::endl;
+    // Vecinos 2D
+    for (int i = 0; i < networkSize; ++i) {
+        network.getNodes()[i].clearNeighbors();
+        int x = i % networkWidth, y = i / networkWidth;
+        if (y > 0) network.getNodes()[i].addNeighbor(i - networkWidth);
+        if (y < networkHeight - 1) network.getNodes()[i].addNeighbor(i + networkWidth);
+        if (x > 0) network.getNodes()[i].addNeighbor(i - 1);
+        if (x < networkWidth - 1) network.getNodes()[i].addNeighbor(i + 1);
     }
+    // Amplitudes iniciales
+    for (int i = 0; i < networkSize; ++i) network.getNodes()[i].updateAmplitude(0.0);
+    int center = (networkHeight / 2) * networkWidth + (networkWidth / 2);
+    network.getNodes()[center].updateAmplitude(amplitude0);
 
-    // Invocar propagación paralela
     WavePropagator propagator(network);
-    int scheduleType = 0;   // 0: static, 1: dynamic, 2: guided, 3: auto
-    int chunkSize = 1;
-    propagator.propagateWaves(scheduleType, chunkSize);
 
-    // Mostrar amplitudes tras la propagación
-    std::cout << "\nAmplitudes después de 1 paso paralelo:" << std::endl;
-    for (int i = 0; i < 3; ++i) {
-        std::cout << "Nodo " << i << ": " << network.getNodes()[i].getAmplitude() << std::endl;
+    std::ofstream out("salida2d.dat");
+    out << "# Simulacion 2D " << networkWidth << "x" << networkHeight << " pasos=" << totalSteps << " dt=" << dt << std::endl;
+    out << "# D=" << D << " gamma=" << gamma << " amp0=" << amplitude0 << std::endl;
+    out << "# Fuente: " << sourceMagnitude << " sin(" << omega << "t)" << std::endl;
+    out << "# Formato: step time x y amp" << std::endl;
+
+    for (int step = 0; step < totalSteps; ++step) {
+        double time = step * dt;
+        double source = sourceMagnitude * std::sin(omega * time);
+        // Si quieres usar la fuente, agrega el término aquí:
+        // network.getNodes()[center].updateAmplitude(network.getNodes()[center].getAmplitude() + dt * source);
+
+        propagator.propagateWaves(1);
+
+        // Guardar todos los pasos sin filtro
+        for (int y = 0; y < networkHeight; ++y) {
+            for (int x = 0; x < networkWidth; ++x) {
+                int idx = y * networkWidth + x;
+                out << step << " " << time << " " << x << " " << y << " " << network.getNodes()[idx].getAmplitude() << "\n";
+            }
+        }
+        out << std::endl; // línea vacía entre snapshots
     }
+    out.close();
 
-    // Validación manual
-    double neighbors_diff = (0.8 - 1.0) + (1.2 - 1.0);
-    double diffusion = D * neighbors_diff;
-    double damping = -gamma * 1.0;
-    double total_delta = dt * (diffusion + damping);
-    double expected = 1.0 + total_delta;
-    std::cout << "\nCálculo manual nodo 1: " << std::endl;
-    std::cout << "Dif. vecinos = " << neighbors_diff << std::endl;
-    std::cout << "Difusión = " << diffusion << std::endl;
-    std::cout << "Amortiguación = " << damping << std::endl;
-    std::cout << "Delta total = " << total_delta << std::endl;
-    std::cout << "Nuevo valor esperado = " << expected << std::endl;
-
+    std::cout << "Simulación completa y archivo .dat generado con TODOS los pasos." << std::endl;
     return 0;
 }
