@@ -40,6 +40,7 @@ void Network::initializeRegularNetwork(int dimensions) {
             if (i < networkSize - 1)
                 nodes[i].addNeighbor(i + 1);
         }
+        for (int i = 0; i < networkSize; ++i) nodes[i].updateAmplitude(0.0);
         return;
     }
 
@@ -76,6 +77,7 @@ void Network::initializeRegularNetwork(int dimensions) {
             }
         }
     }
+    for (int i = 0; i < networkSize; ++i) nodes[i].updateAmplitude(0.0);
 }
 
 
