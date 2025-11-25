@@ -3,35 +3,27 @@
 #include <omp.h>
 #include "Network.h"
 
-void WavePropagator::integrateEuler() {
-    network.propagateWaves(); // Método básico
-}
 
-void WavePropagator::integrateEuler(int syncType) {
-    std::vector<double> newAmplitudes(network.getSize(), 0.0);
-    double totalEnergy = 0.0;
-
-    if (syncType == 0) { // atomic
-        #pragma omp parallel for
-        for (int i = 0; i < network.getSize(); ++i) {
-            double Ai = network.getNodes()[i].getAmplitude();
-            newAmplitudes[i] = Ai * 0.99; // Simple decay
-            
-            #pragma omp atomic
-            totalEnergy += Ai * Ai;
-        }
-    } else if (syncType == 1) { // critical
+void WavePropagator::integrateEulerCore(std::vector<double>& newAmplitudes, double& totalEnergy, int syncType) {
+    if (syncType == 0) { 
         #pragma omp parallel for
         for (int i = 0; i < network.getSize(); ++i) {
             double Ai = network.getNodes()[i].getAmplitude();
             newAmplitudes[i] = Ai * 0.99;
-            
+            #pragma omp atomic
+            totalEnergy += Ai * Ai;
+        }
+    } else if (syncType == 1) { 
+        #pragma omp parallel for
+        for (int i = 0; i < network.getSize(); ++i) {
+            double Ai = network.getNodes()[i].getAmplitude();
+            newAmplitudes[i] = Ai * 0.99;
             #pragma omp critical
             {
                 totalEnergy += Ai * Ai;
             }
         }
-    } else if (syncType == 2) { // nowait
+    } else if (syncType == 2) { 
         #pragma omp parallel
         {
             #pragma omp for nowait
@@ -41,6 +33,17 @@ void WavePropagator::integrateEuler(int syncType) {
             }
         }
     }
+}
+
+void WavePropagator::integrateEuler() {
+    network.propagateWaves(); 
+}
+
+void WavePropagator::integrateEuler(int syncType) {
+    std::vector<double> newAmplitudes(network.getSize(), 0.0);
+    double totalEnergy = 0.0;
+
+    integrateEulerCore(newAmplitudes, totalEnergy, syncType);
 
     for (int i = 0; i < network.getSize(); ++i) {
         network.getNodes()[i].updateAmplitude(newAmplitudes[i]);
@@ -48,19 +51,25 @@ void WavePropagator::integrateEuler(int syncType) {
 }
 
 void WavePropagator::integrateEuler(int syncType, bool useBarrier) {
-    integrateEuler(syncType);
-    
-    if (useBarrier) {
-        #pragma omp parallel
-        {
+    std::vector<double> newAmplitudes(network.getSize(), 0.0);
+    double totalEnergy = 0.0;
+
+    #pragma omp parallel
+    {
+        integrateEulerCore(newAmplitudes, totalEnergy, syncType);
+
+        if (useBarrier) {
             #pragma omp barrier
-            // Sincronización explícita
         }
+    }
+
+    for (int i = 0; i < network.getSize(); ++i) {
+        network.getNodes()[i].updateAmplitude(newAmplitudes[i]);
     }
 }
 
-// 3. CÁLCULO DE ENERGÍA
 
+// 3. CÁLCULO DE ENERGÍA
 double WavePropagator::calculateEnergy() {
     double totalEnergy = 0.0;
     
@@ -97,12 +106,13 @@ double WavePropagator::calculateEnergy(int method) {
 
 double WavePropagator::calculateEnergy(int method, bool usePrivate) {
     double totalEnergy = 0.0;
+    double privateEnergy;
 
     if (usePrivate) {
-        #pragma omp parallel
+        #pragma omp parallel private(privateEnergy)
         {
-            double privateEnergy = 0.0;
-            
+            privateEnergy = 0.0;
+        
             #pragma omp for
             for (int i = 0; i < network.getSize(); ++i) {
                 double amp = network.getNodes()[i].getAmplitude();
@@ -120,7 +130,6 @@ double WavePropagator::calculateEnergy(int method, bool usePrivate) {
 }
 
 // 4. PROCESAMIENTO DE NODOS
-
 void WavePropagator::processNodes() {
     for (int i = 0; i < network.getSize(); ++i) {
         double amp = network.getNodes()[i].getAmplitude();
