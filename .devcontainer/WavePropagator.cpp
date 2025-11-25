@@ -106,12 +106,13 @@ double WavePropagator::calculateEnergy(int method) {
 
 double WavePropagator::calculateEnergy(int method, bool usePrivate) {
     double totalEnergy = 0.0;
+    double privateEnergy;
 
     if (usePrivate) {
         #pragma omp parallel private(privateEnergy)
         {
-            double privateEnergy = 0.0;
-            
+            privateEnergy = 0.0;
+        
             #pragma omp for
             for (int i = 0; i < network.getSize(); ++i) {
                 double amp = network.getNodes()[i].getAmplitude();
