@@ -3,20 +3,13 @@
 #include <omp.h>
 #include "Network.h"
 
-void WavePropagator::integrateEuler() {
-    network.propagateWaves(); // Método básico
-}
-
-void WavePropagator::integrateEuler(int syncType) {
-    std::vector<double> newAmplitudes(network.getSize(), 0.0);
-    double totalEnergy = 0.0;
-
+// Método privado auxiliar que encapsula la lógica común
+void WavePropagator::integrateEulerCore(std::vector<double>& newAmplitudes, double& totalEnergy, int syncType) {
     if (syncType == 0) { // atomic
         #pragma omp parallel for
         for (int i = 0; i < network.getSize(); ++i) {
             double Ai = network.getNodes()[i].getAmplitude();
-            newAmplitudes[i] = Ai * 0.99; // Simple decay
-            
+            newAmplitudes[i] = Ai * 0.99;
             #pragma omp atomic
             totalEnergy += Ai * Ai;
         }
@@ -25,7 +18,6 @@ void WavePropagator::integrateEuler(int syncType) {
         for (int i = 0; i < network.getSize(); ++i) {
             double Ai = network.getNodes()[i].getAmplitude();
             newAmplitudes[i] = Ai * 0.99;
-            
             #pragma omp critical
             {
                 totalEnergy += Ai * Ai;
@@ -41,6 +33,18 @@ void WavePropagator::integrateEuler(int syncType) {
             }
         }
     }
+}
+
+// Métodos públicos ahora llaman al método común
+void WavePropagator::integrateEuler() {
+    network.propagateWaves(); // método básico
+}
+
+void WavePropagator::integrateEuler(int syncType) {
+    std::vector<double> newAmplitudes(network.getSize(), 0.0);
+    double totalEnergy = 0.0;
+
+    integrateEulerCore(newAmplitudes, totalEnergy, syncType);
 
     for (int i = 0; i < network.getSize(); ++i) {
         network.getNodes()[i].updateAmplitude(newAmplitudes[i]);
@@ -48,16 +52,23 @@ void WavePropagator::integrateEuler(int syncType) {
 }
 
 void WavePropagator::integrateEuler(int syncType, bool useBarrier) {
-    integrateEuler(syncType);
-    
-    if (useBarrier) {
-        #pragma omp parallel
-        {
+    std::vector<double> newAmplitudes(network.getSize(), 0.0);
+    double totalEnergy = 0.0;
+
+    #pragma omp parallel
+    {
+        integrateEulerCore(newAmplitudes, totalEnergy, syncType);
+
+        if (useBarrier) {
             #pragma omp barrier
-            // Sincronización explícita
         }
     }
+
+    for (int i = 0; i < network.getSize(); ++i) {
+        network.getNodes()[i].updateAmplitude(newAmplitudes[i]);
+    }
 }
+
 
 // 3. CÁLCULO DE ENERGÍA
 
