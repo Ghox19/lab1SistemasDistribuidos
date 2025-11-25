@@ -97,7 +97,7 @@ void Network::propagateWaves() {
 
         double diffusion = D * sum_neighbors;
         double damping = -gamma * Ai;
-        double delta = diffusion + damping + noiseCoeff;  // ruido fijo agregado
+        double delta = diffusion + damping + noiseCoeff;  
 
         newAmplitudes[i] = Ai + delta * dt;
     }
@@ -136,7 +136,7 @@ void Network::propagateWaves(int scheduleType) {
             }
             double diffusion = D * sum_neighbors;
             double damping = -gamma * Ai;
-            double delta = diffusion + damping + noiseCoeff;  // ruido fijo agregado
+            double delta = diffusion + damping + noiseCoeff;  
             newAmplitudes[i] = Ai + delta * dt;
         }
     } else if (scheduleType == 2) {
@@ -149,7 +149,7 @@ void Network::propagateWaves(int scheduleType) {
             }
             double diffusion = D * sum_neighbors;
             double damping = -gamma * Ai;
-            double delta = diffusion + damping + noiseCoeff;  // ruido fijo agregado
+            double delta = diffusion + damping + noiseCoeff;  
             newAmplitudes[i] = Ai + delta * dt;
         }
     }
@@ -185,7 +185,7 @@ void Network::propagateWaves(int scheduleType, int chunkSize) {
 
         double diffusion = D * sum_neighbors;
         double damping = -gamma * Ai;
-        double delta = diffusion + damping + noiseCoeff;  // ruido fijo agregado
+        double delta = diffusion + damping + noiseCoeff; 
 
         newAmplitudes[i] = Ai + delta * dt;
     }
@@ -221,7 +221,7 @@ void Network::propagateWavesCollapse() {
 
             double diffusion = D * sum_neighbors;
             double damping = -gamma * Ai;
-            double delta = diffusion + damping + noiseCoeff;  // ruido fijo agregado
+            double delta = diffusion + damping + noiseCoeff;
 
             newAmplitudes[idx] = Ai + delta * dt;
         }

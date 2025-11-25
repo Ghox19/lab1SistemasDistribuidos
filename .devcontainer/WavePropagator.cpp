@@ -3,9 +3,9 @@
 #include <omp.h>
 #include "Network.h"
 
-// Método privado auxiliar que encapsula la lógica común
+
 void WavePropagator::integrateEulerCore(std::vector<double>& newAmplitudes, double& totalEnergy, int syncType) {
-    if (syncType == 0) { // atomic
+    if (syncType == 0) { 
         #pragma omp parallel for
         for (int i = 0; i < network.getSize(); ++i) {
             double Ai = network.getNodes()[i].getAmplitude();
@@ -13,7 +13,7 @@ void WavePropagator::integrateEulerCore(std::vector<double>& newAmplitudes, doub
             #pragma omp atomic
             totalEnergy += Ai * Ai;
         }
-    } else if (syncType == 1) { // critical
+    } else if (syncType == 1) { 
         #pragma omp parallel for
         for (int i = 0; i < network.getSize(); ++i) {
             double Ai = network.getNodes()[i].getAmplitude();
@@ -23,7 +23,7 @@ void WavePropagator::integrateEulerCore(std::vector<double>& newAmplitudes, doub
                 totalEnergy += Ai * Ai;
             }
         }
-    } else if (syncType == 2) { // nowait
+    } else if (syncType == 2) { 
         #pragma omp parallel
         {
             #pragma omp for nowait
