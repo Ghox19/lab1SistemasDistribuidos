@@ -11,12 +11,6 @@ private:
 public:
     WavePropagator(Network& net) : network(net) {}
 
-    // 1. Métodos de propagación básicos
-    void propagateWaves();
-    void propagateWaves(int scheduleType);
-    void propagateWaves(int scheduleType, int chunkSize);
-    void propagateWavesCollapse();
-
     // 2. Integración temporal
     void integrateEuler();
     void integrateEuler(int syncType);

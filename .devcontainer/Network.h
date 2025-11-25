@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "Node.h"
+#include <omp.h>
 
 class Network {
 private:
@@ -18,7 +19,6 @@ public:
     void initializeRandomNetwork();
     void initializeRegularNetwork(int dimensions);
 
-    // Getters para los parámetros físicos y de simulación
     double getDiffusionCoeff() const { return diffusionCoeff; }
     double getDampingCoeff() const { return dampingCoeff; }
     double getTimestep() const { return timestep; }
@@ -26,6 +26,12 @@ public:
     std::vector<Node>& getNodes() { return nodes; }
     const std::vector<Node>& getNodes() const { return nodes; }
     int getSize() const { return networkSize; }
+
+
+    void propagateWaves();
+    void propagateWaves(int scheduleType);
+    void propagateWaves(int scheduleType, int chunkSize);
+    void propagateWavesCollapse();
 };
 
 #endif // NETWORK_H

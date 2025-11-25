@@ -32,7 +32,6 @@ int main() {
     int center = (networkHeight / 2) * networkWidth + (networkWidth / 2);
     network.getNodes()[center].updateAmplitude(amplitude0);
 
-    WavePropagator propagator(network);
 
     std::ofstream out("salida2d.dat");
     out << "# Simulacion 2D " << networkWidth << "x" << networkHeight << " pasos=" << totalSteps << " dt=" << dt << std::endl;
@@ -46,7 +45,7 @@ int main() {
         // Si quieres usar la fuente, agrega el término aquí:
         // network.getNodes()[center].updateAmplitude(network.getNodes()[center].getAmplitude() + dt * source);
 
-        propagator.propagateWaves(1);
+        network.propagateWaves(1);
 
         // Guardar todos los pasos sin filtro
         for (int y = 0; y < networkHeight; ++y) {
