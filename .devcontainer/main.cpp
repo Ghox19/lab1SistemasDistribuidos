@@ -13,9 +13,11 @@ int main() {
     const double gamma = 0.01;
     const double amplitude0 = 1.0;
     const double sourceMagnitude = 0.1;
-    const double omega = 2.0 * 3.14159265359;
+    const double frequency = 1.0; // frecuencia en Hz
+    const double omega = 2.0 * M_PI * frequency; // frecuencia angular en radianes por segundo
 
-    Network network(networkSize, D, gamma, dt);
+
+    Network network(networkSize, D, omega,gamma, dt);
 
     network.initializeRegularNetwork(2);
 
@@ -33,8 +35,6 @@ int main() {
     for (int step = 0; step < totalSteps; ++step) {
         double time = step * dt;
         double source = sourceMagnitude * std::sin(omega * time);
-        // Si quieres usar la fuente, agrega el término aquí:
-        // network.getNodes()[center].updateAmplitude(network.getNodes()[center].getAmplitude() + dt * source);
 
         // Ahora prueba la función con collapse(2)
         network.propagateWavesCollapse();

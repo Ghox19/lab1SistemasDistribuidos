@@ -4,8 +4,8 @@
 #include <cmath>
 #include <iostream>
 
-Network::Network(int size, double diffCoeff, double dampCoeff, double dt)
-    : networkSize(size), diffusionCoeff(diffCoeff), dampingCoeff(dampCoeff), timestep(dt)
+Network::Network(int size, double diffCoeff, double dampCoeff,double noiseCoeff, double dt)
+    : networkSize(size), diffusionCoeff(diffCoeff), dampingCoeff(dampCoeff), noiseCoeff(noiseCoeff), timestep(dt)
 {
     for (int i = 0; i < size; ++i)
         nodes.emplace_back(i);
@@ -97,7 +97,7 @@ void Network::propagateWaves() {
 
         double diffusion = D * sum_neighbors;
         double damping = -gamma * Ai;
-        double delta = diffusion + damping;
+        double delta = diffusion + damping + noiseCoeff;  // ruido fijo agregado
 
         newAmplitudes[i] = Ai + delta * dt;
     }
@@ -109,71 +109,55 @@ void Network::propagateWaves() {
 
 void Network::propagateWaves(int scheduleType) {
     std::vector<double> newAmplitudes(getSize(), 0.0);
-    
-    // Obtener los parámetros físicos de la simulación desde la red
-    double D = getDiffusionCoeff();      // Coeficiente de difusión
-    double gamma = getDampingCoeff();    // Coeficiente de amortiguación  
-    double dt = getTimestep();           // Paso temporal
+    double D = getDiffusionCoeff();
+    double gamma = getDampingCoeff();
+    double dt = getTimestep();
 
-    // BRANCH 1: Scheduling estático
     if (scheduleType == 0) {
         #pragma omp parallel for schedule(static)
         for (int i = 0; i < getSize(); ++i) {
             double sum_neighbors = 0.0;
-            double Ai = getNodes()[i].getAmplitude();  // Amplitud actual del nodo i
+            double Ai = getNodes()[i].getAmplitude();
             for (int neighborId : getNodes()[i].getNeighbors()) {
                 sum_neighbors += getNodes()[neighborId].getAmplitude() - Ai;
             }
-
-            // A_i(t+dt) = A_i(t) + dt * [D * difusión - γ * amortiguación]
-            double diffusion = D * sum_neighbors;    
-            double damping = -gamma * Ai;          
-            
-            // Método de Euler explícito para integración temporal
-            newAmplitudes[i] = Ai + (diffusion + damping) * dt;
+            double diffusion = D * sum_neighbors;
+            double damping = -gamma * Ai;
+            double delta = diffusion + damping + noiseCoeff;  // ruido fijo agregado
+            newAmplitudes[i] = Ai + delta * dt;
         }
-        
-    // BRANCH 2: Scheduling dinámico    
     } else if (scheduleType == 1) {
         #pragma omp parallel for schedule(dynamic)
         for (int i = 0; i < getSize(); ++i) {
             double sum_neighbors = 0.0;
             double Ai = getNodes()[i].getAmplitude();
-
             for (int neighborId : getNodes()[i].getNeighbors()) {
                 sum_neighbors += getNodes()[neighborId].getAmplitude() - Ai;
             }
-
             double diffusion = D * sum_neighbors;
             double damping = -gamma * Ai;
-            newAmplitudes[i] = Ai + (diffusion + damping) * dt;
+            double delta = diffusion + damping + noiseCoeff;  // ruido fijo agregado
+            newAmplitudes[i] = Ai + delta * dt;
         }
-        
-    // BRANCH 3: Scheduling guiado
     } else if (scheduleType == 2) {
         #pragma omp parallel for schedule(guided)
         for (int i = 0; i < getSize(); ++i) {
             double sum_neighbors = 0.0;
             double Ai = getNodes()[i].getAmplitude();
-
             for (int neighborId : getNodes()[i].getNeighbors()) {
                 sum_neighbors += getNodes()[neighborId].getAmplitude() - Ai;
             }
-
             double diffusion = D * sum_neighbors;
             double damping = -gamma * Ai;
-            newAmplitudes[i] = Ai + (diffusion + damping) * dt;
+            double delta = diffusion + damping + noiseCoeff;  // ruido fijo agregado
+            newAmplitudes[i] = Ai + delta * dt;
         }
     }
 
-    // FASE DE ACTUALIZACIÓN (ejecutada por un solo thread, secuencialmente)
-    // Una vez calculadas todas las nuevas amplitudes, actualizamos los nodos
-    // Esto se hace fuera de la región paralela para evitar condiciones de carrera
     for (int i = 0; i < getSize(); ++i) {
         getNodes()[i].updateAmplitude(newAmplitudes[i]);
     }
 }
-
 
 void Network::propagateWaves(int scheduleType, int chunkSize) {
     std::vector<double> newAmplitudes(getSize(), 0.0);
@@ -201,7 +185,9 @@ void Network::propagateWaves(int scheduleType, int chunkSize) {
 
         double diffusion = D * sum_neighbors;
         double damping = -gamma * Ai;
-        newAmplitudes[i] = Ai + (diffusion + damping) * dt;
+        double delta = diffusion + damping + noiseCoeff;  // ruido fijo agregado
+
+        newAmplitudes[i] = Ai + delta * dt;
     }
 
     for (int i = 0; i < getSize(); ++i) {
@@ -235,7 +221,9 @@ void Network::propagateWavesCollapse() {
 
             double diffusion = D * sum_neighbors;
             double damping = -gamma * Ai;
-            newAmplitudes[idx] = Ai + (diffusion + damping) * dt;
+            double delta = diffusion + damping + noiseCoeff;  // ruido fijo agregado
+
+            newAmplitudes[idx] = Ai + delta * dt;
         }
     }
 

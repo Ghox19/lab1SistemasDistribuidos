@@ -11,16 +11,17 @@ private:
     int networkSize;
     double diffusionCoeff;
     double dampingCoeff;
+    double noiseCoeff;
     double timestep;
 
 public:
-    Network(int size, double diffCoeff, double dampCoeff, double dt);
-
+    Network(int size, double diffCoeff, double dampCoeff, double noiseCoeff, double dt);
     void initializeRandomNetwork();
     void initializeRegularNetwork(int dimensions);
 
     double getDiffusionCoeff() const { return diffusionCoeff; }
     double getDampingCoeff() const { return dampingCoeff; }
+    double getNoiseCoeff() const { return noiseCoeff; }
     double getTimestep() const { return timestep; }
 
     std::vector<Node>& getNodes() { return nodes; }
