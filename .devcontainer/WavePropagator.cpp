@@ -35,9 +35,8 @@ void WavePropagator::integrateEulerCore(std::vector<double>& newAmplitudes, doub
     }
 }
 
-// Métodos públicos ahora llaman al método común
 void WavePropagator::integrateEuler() {
-    network.propagateWaves(); // método básico
+    network.propagateWaves(); 
 }
 
 void WavePropagator::integrateEuler(int syncType) {
@@ -71,7 +70,6 @@ void WavePropagator::integrateEuler(int syncType, bool useBarrier) {
 
 
 // 3. CÁLCULO DE ENERGÍA
-
 double WavePropagator::calculateEnergy() {
     double totalEnergy = 0.0;
     
@@ -131,7 +129,6 @@ double WavePropagator::calculateEnergy(int method, bool usePrivate) {
 }
 
 // 4. PROCESAMIENTO DE NODOS
-
 void WavePropagator::processNodes() {
     for (int i = 0; i < network.getSize(); ++i) {
         double amp = network.getNodes()[i].getAmplitude();

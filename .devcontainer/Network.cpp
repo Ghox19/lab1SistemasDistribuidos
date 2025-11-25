@@ -35,6 +35,7 @@ void Network::initializeRegularNetwork(int dimensions) {
     // Caso unidimensional
     if (dimensions == 1) {
         for (int i = 0; i < networkSize; ++i) {
+            nodes[i].updateAmplitude(0.0);
             if (i > 0)
                 nodes[i].addNeighbor(i - 1);
             if (i < networkSize - 1)
@@ -54,6 +55,7 @@ void Network::initializeRegularNetwork(int dimensions) {
     for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
             int idx = r * cols + c;
+            nodes[idx].updateAmplitude(0.0);
             // vecino superior
             if (r > 0) {
                 int up = (r - 1) * cols + c;
