@@ -2,7 +2,6 @@
 #include <fstream>
 #include <cmath>
 #include "Network.h"
-#include "WavePropagator.h"
 
 int main() {
     const int networkWidth = 100;
@@ -18,20 +17,12 @@ int main() {
 
     Network network(networkSize, D, gamma, dt);
 
-    // Vecinos 2D
-    for (int i = 0; i < networkSize; ++i) {
-        network.getNodes()[i].clearNeighbors();
-        int x = i % networkWidth, y = i / networkWidth;
-        if (y > 0) network.getNodes()[i].addNeighbor(i - networkWidth);
-        if (y < networkHeight - 1) network.getNodes()[i].addNeighbor(i + networkWidth);
-        if (x > 0) network.getNodes()[i].addNeighbor(i - 1);
-        if (x < networkWidth - 1) network.getNodes()[i].addNeighbor(i + 1);
-    }
+    network.initializeRegularNetwork(2);
+
     // Amplitudes iniciales
     for (int i = 0; i < networkSize; ++i) network.getNodes()[i].updateAmplitude(0.0);
     int center = (networkHeight / 2) * networkWidth + (networkWidth / 2);
     network.getNodes()[center].updateAmplitude(amplitude0);
-
 
     std::ofstream out("salida2d.dat");
     out << "# Simulacion 2D " << networkWidth << "x" << networkHeight << " pasos=" << totalSteps << " dt=" << dt << std::endl;
@@ -45,7 +36,8 @@ int main() {
         // Si quieres usar la fuente, agrega el término aquí:
         // network.getNodes()[center].updateAmplitude(network.getNodes()[center].getAmplitude() + dt * source);
 
-        network.propagateWaves(1);
+        // Ahora prueba la función con collapse(2)
+        network.propagateWavesCollapse();
 
         // Guardar todos los pasos sin filtro
         for (int y = 0; y < networkHeight; ++y) {
@@ -58,6 +50,6 @@ int main() {
     }
     out.close();
 
-    std::cout << "Simulación completa y archivo .dat generado con TODOS los pasos." << std::endl;
+    std::cout << "Simulación completa y archivo .dat generado con TODOS los pasos usando collapse(2)." << std::endl;
     return 0;
 }

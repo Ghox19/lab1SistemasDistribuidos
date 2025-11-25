@@ -99,7 +99,7 @@ double WavePropagator::calculateEnergy(int method, bool usePrivate) {
     double totalEnergy = 0.0;
 
     if (usePrivate) {
-        #pragma omp parallel
+        #pragma omp parallel private(privateEnergy)
         {
             double privateEnergy = 0.0;
             

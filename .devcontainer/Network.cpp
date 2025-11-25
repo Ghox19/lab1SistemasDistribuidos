@@ -1,6 +1,7 @@
 #include "Network.h"
 #include <cstdlib>  // rand()
 #include <ctime>    // time()
+#include <cmath>
 #include <iostream>
 
 Network::Network(int size, double diffCoeff, double dampCoeff, double dt)
@@ -27,16 +28,53 @@ void Network::initializeRandomNetwork() {
 }
 
 void Network::initializeRegularNetwork(int dimensions) {
-    if (dimensions != 1) {
-        std::cerr << "Solo implementado para dimensión 1 (línea)" << std::endl;
+    if (dimensions > 2 || dimensions < 1) {
+        std::cerr << "Solo implementado para una o dos dimensiones" << std::endl;
+        return;
+    }
+    // Caso unidimensional
+    if (dimensions == 1) {
+        for (int i = 0; i < networkSize; ++i) {
+            if (i > 0)
+                nodes[i].addNeighbor(i - 1);
+            if (i < networkSize - 1)
+                nodes[i].addNeighbor(i + 1);
+        }
         return;
     }
 
-    for (int i = 0; i < networkSize; ++i) {
-        if (i > 0)
-            nodes[i].addNeighbor(i - 1);
-        if (i < networkSize - 1)
-            nodes[i].addNeighbor(i + 1);
+    // Caso bidimensional
+    int rows = static_cast<int>(std::sqrt(this->getSize()));
+    while (rows > 1 && this->getSize() % rows != 0) {
+        --rows;
+    }
+    int cols = this->getSize() / rows;
+
+
+    for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < cols; ++c) {
+            int idx = r * cols + c;
+            // vecino superior
+            if (r > 0) {
+                int up = (r - 1) * cols + c;
+                nodes[idx].addNeighbor(up);
+            }
+            // vecino inferior
+            if (r < rows - 1) {
+                int down = (r + 1) * cols + c;
+                nodes[idx].addNeighbor(down);
+            }
+            // vecino izquierdo
+            if (c > 0) {
+                int left = r * cols + (c - 1);
+                nodes[idx].addNeighbor(left);
+            }
+            // vecino derecho
+            if (c < cols - 1) {
+                int right = r * cols + (c + 1);
+                nodes[idx].addNeighbor(right);
+            }
+        }
     }
 }
 
@@ -68,8 +106,6 @@ void Network::propagateWaves() {
 }
 
 void Network::propagateWaves(int scheduleType) {
-    // Crear vector temporal para almacenar las nuevas amplitudes calculadas
-    // Esto evita condiciones de carrera (race conditions) al separar lectura y escritura
     std::vector<double> newAmplitudes(getSize(), 0.0);
     
     // Obtener los parámetros físicos de la simulación desde la red
@@ -79,26 +115,17 @@ void Network::propagateWaves(int scheduleType) {
 
     // BRANCH 1: Scheduling estático
     if (scheduleType == 0) {
-        // static: Divide las iteraciones en chunks iguales entre threads
-        // Cada thread recibe un bloque contiguo de iteraciones
-        // Mejor para cargas de trabajo uniformes
         #pragma omp parallel for schedule(static)
         for (int i = 0; i < getSize(); ++i) {
-            // Variables locales a cada thread (automáticamente privadas)
             double sum_neighbors = 0.0;
             double Ai = getNodes()[i].getAmplitude();  // Amplitud actual del nodo i
-
-            // Calcular suma de diferencias con vecinos
-            // Esta es la parte de difusión: la onda se propaga hacia vecinos
             for (int neighborId : getNodes()[i].getNeighbors()) {
-                // (A_vecino - A_i): diferencia que impulsa la difusión
                 sum_neighbors += getNodes()[neighborId].getAmplitude() - Ai;
             }
 
-            // Aplicar ecuación física de propagación de ondas:
             // A_i(t+dt) = A_i(t) + dt * [D * difusión - γ * amortiguación]
-            double diffusion = D * sum_neighbors;    // Término de difusión
-            double damping = -gamma * Ai;           // Término de amortiguación (negativo)
+            double diffusion = D * sum_neighbors;    
+            double damping = -gamma * Ai;          
             
             // Método de Euler explícito para integración temporal
             newAmplitudes[i] = Ai + (diffusion + damping) * dt;
@@ -106,12 +133,8 @@ void Network::propagateWaves(int scheduleType) {
         
     // BRANCH 2: Scheduling dinámico    
     } else if (scheduleType == 1) {
-        // dynamic: Asigna iteraciones a threads conforme terminan trabajo previo
-        // Mejor balanceo para cargas de trabajo irregulares
-        // Más overhead pero mejor distribución si nodos tienen diferente complejidad
         #pragma omp parallel for schedule(dynamic)
         for (int i = 0; i < getSize(); ++i) {
-            // Misma lógica física que en static
             double sum_neighbors = 0.0;
             double Ai = getNodes()[i].getAmplitude();
 
@@ -126,12 +149,8 @@ void Network::propagateWaves(int scheduleType) {
         
     // BRANCH 3: Scheduling guiado
     } else if (scheduleType == 2) {
-        // guided: Empieza con chunks grandes y los reduce exponencialmente
-        // Combina ventajas de static (menos overhead) con dynamic (balanceo)
-        // Chunks iniciales grandes → eficiencia, chunks finales pequeños → balanceo
         #pragma omp parallel for schedule(guided)
         for (int i = 0; i < getSize(); ++i) {
-            // Misma lógica física que en las otras ramas
             double sum_neighbors = 0.0;
             double Ai = getNodes()[i].getAmplitude();
 
@@ -189,13 +208,36 @@ void Network::propagateWaves(int scheduleType, int chunkSize) {
 }
 
 void Network::propagateWavesCollapse() {
-    std::vector<std::vector<double>> grid(100, std::vector<double>(100, 0.0));
-    
+    int side = static_cast<int>(std::sqrt(getSize()));
+    if (side * side != getSize()) {
+        std::cerr << "Error: La red debe ser cuadrada para usar collapse en 2D." << std::endl;
+        return;
+    }
+
+    std::vector<double> newAmplitudes(getSize(), 0.0);
+    double D = getDiffusionCoeff();
+    double gamma = getDampingCoeff();
+    double dt = getTimestep();
+
     #pragma omp parallel for collapse(2)
-    for (int i = 0; i < 100; ++i) {
-        for (int j = 0; j < 100; ++j) {
-            // Simulación en grid 2D con collapse
-            grid[i][j] = (i + j) * 0.1;
+    for (int i = 0; i < side; ++i) {
+        for (int j = 0; j < side; ++j) {
+            int idx = i * side + j;
+            double sum_neighbors = 0.0;
+            double Ai = getNodes()[idx].getAmplitude();
+
+            if (i > 0)        sum_neighbors += getNodes()[(i - 1) * side + j].getAmplitude() - Ai;   
+            if (i < side - 1) sum_neighbors += getNodes()[(i + 1) * side + j].getAmplitude() - Ai; 
+            if (j > 0)        sum_neighbors += getNodes()[i * side + (j - 1)].getAmplitude() - Ai;  
+            if (j < side - 1) sum_neighbors += getNodes()[i * side + (j + 1)].getAmplitude() - Ai;   
+
+            double diffusion = D * sum_neighbors;
+            double damping = -gamma * Ai;
+            newAmplitudes[idx] = Ai + (diffusion + damping) * dt;
         }
+    }
+
+    for (int i = 0; i < getSize(); ++i) {
+        getNodes()[i].updateAmplitude(newAmplitudes[i]);
     }
 }
