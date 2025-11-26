@@ -11,27 +11,25 @@ private:
 public:
     WavePropagator(Network& net) : network(net) {}
 
-    // 2. Integración temporal
+    // 1. INTEGRACIÓN TEMPORAL
     void integrateEulerCore(std::vector<double>& newAmplitudes, double& totalEnergy, int syncType) ;
     void integrateEuler();
     void integrateEuler(int syncType);
     void integrateEuler(int syncType, bool useBarrier);
 
-    // 3. Cálculo de energía
+    // 2. Cálculo de energía
     double calculateEnergy();
     double calculateEnergy(int method);
     double calculateEnergy(int method, bool usePrivate);
 
-    // 4. Procesamiento de nodos
+    // 3. Procesamiento de nodos
     void processNodes();
     void processNodes(int taskType);
     void processNodes(int taskType, bool useSingle);
 
-    // 5. Métodos específicos para cláusulas únicas
-    void simulatePhasesBarrier();
+    // 4. Métodos específicos para cláusulas únicas
     void parallelInitializationSingle();
     double calculateMetricsFirstprivate();
-    void calculateFinalStateLastprivate();
 };
 
 #endif // WAVEPROPAGATOR_H
