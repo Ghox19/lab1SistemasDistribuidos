@@ -1,7 +1,7 @@
 #ifndef METRICS_CALCULATOR_H
 #define METRICS_CALCULATOR_H
 
-#include <Network.h>
+#include "Network.h"
 
 class MetricsCalculator {
 private:

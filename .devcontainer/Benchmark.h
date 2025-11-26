@@ -10,7 +10,7 @@ struct performanceMeasurement {
     double error;
 };
 
-struct amdahl {
+struct amdahlResults {
     double amdahl;
     double serialFraction;
 };
@@ -20,7 +20,7 @@ struct performanceAnalysis {
     performanceMeasurement parallelTime;
     performanceMeasurement speedup;
     performanceMeasurement efficiency;
-    amdahl amdahl;
+    amdahlResults amdahl;
 };
 
 class Benchmark {
@@ -42,7 +42,7 @@ private:
     performanceMeasurement measureTime(std::vector<double> times);
     performanceMeasurement measureSpeedup(std::vector<double> serialTimes, std::vector<double> parallelTimes);
     performanceMeasurement measureEfficiency(performanceMeasurement speedup, int currentThreads);
-    amdahl calculateAmdahl(double initialTime, performanceMeasurement serialTime, int currentThreads);
+    amdahlResults calculateAmdahl(double initialTime, performanceMeasurement serialTime, int currentThreads);
     performanceAnalysis analyzePerformance(std::vector<double> serialTimes, std::vector<double> parallelTimes, double initialTime, int currentThreads);
     void writeSchedulesPerformanceHeader();
     void writeSynchronizationPerformanceHeader();

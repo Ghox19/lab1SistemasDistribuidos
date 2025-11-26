@@ -62,7 +62,7 @@ performanceMeasurement Benchmark::measureEfficiency(performanceMeasurement speed
     return {efficiency, error};
 }
 
-amdahl Benchmark::calculateAmdahl(double initialTime, performanceMeasurement serialTime, int currentThreads) {
+amdahlResults Benchmark::calculateAmdahl(double initialTime, performanceMeasurement serialTime, int currentThreads) {
     double serialFraction = serialTime.time / (serialTime.time + initialTime);
     double rightPartDenominator = (1 - serialFraction) / currentThreads;
     double denominator = serialFraction + rightPartDenominator;
@@ -76,8 +76,7 @@ performanceAnalysis Benchmark::analyzePerformance(std::vector<double> serialTime
     performanceMeasurement parallelTime = measureTime(parallelTimes);
     performanceMeasurement speedup = measureSpeedup(serialTimes, parallelTimes);
     performanceMeasurement efficiency = measureEfficiency(speedup, currentThreads);
-    // todo
-    amdahl amdahl = calculateAmdahl(initialTime, serialTime, currentThreads);
+    amdahlResults amdahl = calculateAmdahl(initialTime, serialTime, currentThreads);
     return {serialTime, parallelTime, speedup, efficiency, amdahl};
 }
 
@@ -228,8 +227,11 @@ void Benchmark::executeScalingAnalysis() {
 };
 
 void Benchmark::analyzeScalability() {
+    const double frequency = 1.0;
+    const double omega = 2.0 * M_PI * frequency;
+
     double initialT0 = omp_get_wtime();
-    Network network(networkSize, D, gamma, dt);
+    Network network(networkSize, D, gamma, omega, dt);
     network.initializeRegularNetwork(2);
     network.getNodes()[0].updateAmplitude(amplitude0);
 
@@ -270,8 +272,11 @@ void Benchmark::analyzeScalability() {
 
             
 void Benchmark::compareSchedules() {
+    const double frequency = 1.0;
+    const double omega = 2.0 * M_PI * frequency;
+
     double initialT0 = omp_get_wtime();
-    Network network(networkSize, D, gamma, dt);
+    Network network(networkSize, D, gamma, omega, dt);
     network.initializeRegularNetwork(2);
     network.getNodes()[0].updateAmplitude(amplitude0);
 
@@ -308,9 +313,11 @@ void Benchmark::compareSchedules() {
 };
 
 void Benchmark::compareSynchronization() {
+    const double frequency = 1.0;
+    const double omega = 2.0 * M_PI * frequency;
 
     double initialT0 = omp_get_wtime();
-    Network network(networkSize, D, gamma, dt);
+    Network network(networkSize, D, gamma, omega, dt);
     network.initializeRegularNetwork(2);
     network.getNodes()[0].updateAmplitude(amplitude0);
     WavePropagator propagator(network);
@@ -350,8 +357,10 @@ void Benchmark::compareSynchronization() {
 
 
 void Benchmark::compareData() {
+    const double frequency = 1.0;
+    const double omega = 2.0 * M_PI * frequency;
     double initialT0 = omp_get_wtime();
-    Network network(networkSize, D, gamma, dt);
+    Network network(networkSize, D, gamma, omega, dt);
     network.initializeRegularNetwork(2);
     network.getNodes()[0].updateAmplitude(amplitude0);
     WavePropagator propagator(network);
@@ -397,7 +406,9 @@ void Benchmark::compareData() {
 
 void Benchmark::compareAdvancedSynchronization() {
     double initialT0 = omp_get_wtime();
-    Network network(networkSize, D, gamma, dt);
+    const double frequency = 1.0;
+    const double omega = 2.0 * M_PI * frequency;
+    Network network(networkSize, D, gamma, omega, dt);
     network.initializeRegularNetwork(2);
     network.getNodes()[0].updateAmplitude(amplitude0);
     WavePropagator propagator(network);
@@ -440,9 +451,10 @@ void Benchmark::measureEnergyConservation() {
     writeEnergyConservationHeader();
     int totalSteps = 1000;
     const double sourceMagnitude = 0.1;
-    const double omega = 2.0 * 3.14159265359;
+    const double frequency = 1.0;
+    const double omega = 2.0 * M_PI * frequency;
 
-    Network network(networkSize, D, gamma, dt);
+    Network network(networkSize, D, gamma, omega, dt);
     network.initializeRegularNetwork(2);
     network.getNodes()[0].updateAmplitude(amplitude0);
     WavePropagator propagator(network);
