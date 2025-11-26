@@ -13,15 +13,18 @@ private:
 public:
     Node(int nodeId);
 
+    // Métodos para gestionar vecinos y amplitud
     void addNeighbor(int neighborId);
-    void clearNeighbors();              // Nuevo método para limpiar vecinos
+    void clearNeighbors();           
     void updateAmplitude(double newAmplitude);
 
+    // Métodos para obtener amplitudes
     double getAmplitude() const;
     double getPreviousAmplitude() const;
 
-    const std::vector<int>& getNeighbors() const;  // Para lectura
-    std::vector<int>& getNeighbors();              // Para modificación
+    // Métodos para obtener vecinos
+    const std::vector<int>& getNeighbors() const;
+    std::vector<int>& getNeighbors();              
 
     int getDegree() const;
 };

@@ -11,7 +11,7 @@ private:
 public:
     WavePropagator(Network& net) : network(net) {}
 
-    // 1. INTEGRACIÓN TEMPORAL
+    // 1. Integración temporal
     void integrateEulerCore(std::vector<double>& newAmplitudes, double& totalEnergy, int syncType) ;
     void integrateEuler();
     void integrateEuler(int syncType);

@@ -10,8 +10,8 @@ private:
 public:
     MetricsCalculator(Network& net) : network(net) {};
 
-    double calculateTotalEnergy();
-    double calculatePropagationSpeed();              // Nuevo método para limpiar vecinos
+    // Cálculo de métricas
+    double calculateTotalEnergy();        
     double calculateAverageAmplitude();
 
 };
