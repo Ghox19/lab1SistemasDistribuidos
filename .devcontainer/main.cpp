@@ -33,8 +33,7 @@ int run_default() {
 
     network.initializeRegularNetwork(2);
 
-    // Amplitudes iniciales
-    for (int i = 0; i < networkSize; ++i) network.getNodes()[i].updateAmplitude(0.0);
+    // Amplitud inicial
     int center = (networkHeight / 2) * networkWidth + (networkWidth / 2);
     network.getNodes()[center].updateAmplitude(amplitude0);
 
