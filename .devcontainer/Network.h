@@ -27,6 +27,7 @@ public:
     std::vector<Node>& getNodes() { return nodes; }
     const std::vector<Node>& getNodes() const { return nodes; }
     int getSize() const { return networkSize; }
+    void updateNoiseCoeff(double newNoise) { noiseCoeff = newNoise; }
 
 
     void propagateWaves();

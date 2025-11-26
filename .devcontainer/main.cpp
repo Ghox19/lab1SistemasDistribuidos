@@ -33,7 +33,6 @@ int run_default() {
 
     network.initializeRegularNetwork(2);
 
-
     // Amplitudes iniciales
     for (int i = 0; i < networkSize; ++i) network.getNodes()[i].updateAmplitude(0.0);
     int center = (networkHeight / 2) * networkWidth + (networkWidth / 2);
@@ -47,6 +46,8 @@ int run_default() {
 
     for (int step = 0; step < totalSteps; ++step) {
         double time = step * dt;
+
+        network.updateNoiseCoeff(0.1 * sin(omega * time) * dt);
         
         // Ahora prueba la función con collapse(2)
         network.propagateWavesCollapse();

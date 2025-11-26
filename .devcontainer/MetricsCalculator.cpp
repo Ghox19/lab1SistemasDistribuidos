@@ -1,6 +1,7 @@
 #include "MetricsCalculator.h"
 #include <omp.h>
 
+// Cálculo de energía total del sistema
 double MetricsCalculator::calculateTotalEnergy() {
     double sum = 0.0;
     std::vector<Node> nodes = network.getNodes();
@@ -16,6 +17,8 @@ double MetricsCalculator::calculateTotalEnergy() {
     return sum;
 };
 
+
+// Cálculo de amplitud promedio del sistema
 double MetricsCalculator::calculateAverageAmplitude() {
     double sum = 0.0;
     std::vector<Node> nodes = network.getNodes();

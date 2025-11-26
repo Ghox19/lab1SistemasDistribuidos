@@ -1,8 +1,2 @@
-# lab1SistemasDistribuidos
-later
+# Para ejecucion se tiene los siguientes comandos:
 
-# Build
-docker build -t openmp-linux .
-
-# Run
-docker run --rm openmp-linux  
