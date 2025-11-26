@@ -450,7 +450,6 @@ void Benchmark::measureEnergyConservation() {
     openResultsFile("energy_conservation.dat");
     writeEnergyConservationHeader();
     int totalSteps = 1000;
-    const double sourceMagnitude = 0.1;
     const double frequency = 1.0;
     const double omega = 2.0 * M_PI * frequency;
 

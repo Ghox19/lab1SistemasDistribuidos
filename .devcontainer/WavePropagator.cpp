@@ -177,26 +177,6 @@ void WavePropagator::processNodes(int taskType, bool useSingle) {
 
 // 5. MÉTODOS ESPECÍFICOS PARA CLÁUSULAS ÚNICAS
 
-void WavePropagator::simulatePhasesBarrier() {
-    #pragma omp parallel
-    {
-        // Fase 1: Calcular nuevas amplitudes
-        #pragma omp for
-        for (int i = 0; i < network.getSize(); ++i) {
-            double amp = network.getNodes()[i].getAmplitude();
-            // Procesamiento fase 1
-        }
-
-        #pragma omp barrier
-
-        // Fase 2: Actualizar amplitudes
-        #pragma omp for
-        for (int i = 0; i < network.getSize(); ++i) {
-            double amp = network.getNodes()[i].getAmplitude();
-            network.getNodes()[i].updateAmplitude(amp * 0.99);
-        }
-    }
-}
 
 void WavePropagator::parallelInitializationSingle() {
     #pragma omp parallel
@@ -226,14 +206,4 @@ double WavePropagator::calculateMetricsFirstprivate() {
     return totalMetric;
 }
 
-void WavePropagator::calculateFinalStateLastprivate() {
-    double finalValue = 0.0;
 
-    #pragma omp parallel for lastprivate(finalValue)
-    for (int i = 0; i < network.getSize(); ++i) {
-        double amp = network.getNodes()[i].getAmplitude();
-        finalValue = amp; // El último thread preserva este valor
-    }
-
-    // finalValue contiene el valor de la última iteración
-}
