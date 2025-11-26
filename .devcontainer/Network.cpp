@@ -83,15 +83,18 @@ void Network::initializeRegularNetwork(int dimensions) {
 }
 
 
-#include <cmath>
-
-// Comun para todas: cálculo del centro
-double rowsize_d = std::sqrt(static_cast<double>(getSize()));
-int rowsize = static_cast<int>(std::round(rowsize_d));
-int center = static_cast<int>(std::round((rowsize / 2.0) * rowsize + (rowsize / 2.0)));
+int Network::getCenter() {
+    // cálculo del centro
+    double rowsize_d = std::sqrt(static_cast<double>(this->getSize()));
+    int rowsize = static_cast<int>(std::round(rowsize_d));
+    int center = static_cast<int>(std::round((rowsize / 2.0) * rowsize + (rowsize / 2.0)));
+    return center;
+}
 
 // Versión secuencial
 void Network::propagateWaves() {
+    // cálculo del centro
+    int center = getCenter();
     std::vector<double> newAmplitudes(getSize(), 0.0);
     double D = getDiffusionCoeff();
     double gamma = getDampingCoeff();
@@ -116,6 +119,7 @@ void Network::propagateWaves() {
 
 // Paralelo con scheduleType
 void Network::propagateWaves(int scheduleType) {
+
     std::vector<double> newAmplitudes(getSize(), 0.0);
     double D = getDiffusionCoeff();
     double gamma = getDampingCoeff();
@@ -123,7 +127,7 @@ void Network::propagateWaves(int scheduleType) {
 
     double rowsize_d = std::sqrt(static_cast<double>(getSize()));
     int rowsize = static_cast<int>(std::round(rowsize_d));
-    int center = static_cast<int>(std::round((rowsize / 2.0) * rowsize + (rowsize / 2.0)));
+    int center = getCenter();
 
     if (scheduleType == 0) {
         #pragma omp parallel for schedule(static)
@@ -149,6 +153,7 @@ void Network::propagateWaves(int scheduleType) {
 
 // Paralelo por chunks
 void Network::propagateWaves(int scheduleType, int chunkSize) {
+
     std::vector<double> newAmplitudes(getSize(), 0.0);
     double D = getDiffusionCoeff();
     double gamma = getDampingCoeff();
@@ -156,7 +161,7 @@ void Network::propagateWaves(int scheduleType, int chunkSize) {
 
     double rowsize_d = std::sqrt(static_cast<double>(getSize()));
     int rowsize = static_cast<int>(std::round(rowsize_d));
-    int center = static_cast<int>(std::round((rowsize / 2.0) * rowsize + (rowsize / 2.0)));
+    int center = getCenter();
 
     omp_sched_t scheduleKind = omp_sched_static;
     if (scheduleType == 1) scheduleKind = omp_sched_dynamic;
@@ -178,12 +183,14 @@ void Network::propagateWaves(int scheduleType, int chunkSize) {
 
 // Paralelo 2D con collapse
 void Network::propagateWavesCollapse() {
+
+
     int side = static_cast<int>(std::round(std::sqrt(getSize())));
     if (side * side != getSize()) {
         std::cerr << "Error: La red debe ser cuadrada para usar collapse en 2D." << std::endl;
         return;
     }
-    int center = static_cast<int>(std::round((side / 2.0) * side + (side / 2.0)));
+    int center = getCenter();
 
     std::vector<double> newAmplitudes(getSize(), 0.0);
     double D = getDiffusionCoeff();

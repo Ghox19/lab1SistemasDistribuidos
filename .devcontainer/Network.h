@@ -13,12 +13,12 @@ private:
     double dampingCoeff;
     double noiseCoeff;
     double timestep;
+    int getCenter();
 
 public:
     Network(int size, double diffCoeff, double dampCoeff, double noiseCoeff, double dt);
     void initializeRandomNetwork();
     void initializeRegularNetwork(int dimensions);
-
     double getDiffusionCoeff() const { return diffusionCoeff; }
     double getDampingCoeff() const { return dampingCoeff; }
     double getNoiseCoeff() const { return noiseCoeff; }
