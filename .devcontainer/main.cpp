@@ -81,7 +81,8 @@ int main(int argc, char* argv[]) {
         run_benchmarks();
         return 0;
     } else if (mode == "-analysis") {
-        std::cout << "Ejecutando análisis...\n";
+        std::cout << "Ejecutando simulación y análisis...\n";
+        run_default();
         run_analysis();
         return 0;
     } else {
